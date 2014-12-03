@@ -1,0 +1,23 @@
+{
+  "name": "node-txstatsd",
+  "version": "0.1.0",
+  "description": "Modified version of https://github.com/sivy/node-statsd/ for WMF specific",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wikimedia/node-txstatsd.git"
+  },
+  "keywords": [
+    "statsd",
+    "txstatsd",
+    "client"
+  ],
+  "author": "Gabriel Wicke <gwicke@wikimedia.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wikimedia/node-txstatsd/issues"
+  }
+}
