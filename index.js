@@ -140,52 +140,43 @@ Client.prototype.unique =
  * @param sampleRate {Number} The Number of times to sample (0 to 1)
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
-Client.prototype.sendAll = function(stat, value, type, sampleRate, callback){
-    var completed = 0,
-        calledback = false,
-        sentBytes = 0,
-        self = this;
+Client.prototype.sendAll = function(stats, value, type, sampleRate, callback){
+    var self = this;
 
-    /**
-     * Gets called once for each callback, when all callbacks return we will
-     * call back from the function
-     * @private
-     */
-    function onSend(error, bytes){
-        completed += 1;
-        if(calledback || typeof callback !== 'function'){
-            return;
-        }
-
-        if(error){
-            calledback = true;
-            return callback(error);
-        }
-
-        sentBytes += bytes;
-        if(completed === stat.length){
-            callback(null, sentBytes);
-        }
+    if (!Array.isArray(stats)) {
+        stats = [stats];
     }
-
-    if(Array.isArray(stat)){
-        stat.forEach(function(item){
-            self.send(item, value, type, sampleRate, onSend);
-        });
-    } else {
-        this.send(stat, value, type, sampleRate, callback);
+    var message = stats.filter(function(item) {
+            return item !== undefined;
+        }).map(function(item) {
+            return self.makeMessage(item, value, type, sampleRate);
+        }).join('\n');
+    if (message) {
+        this._send(message, callback);
     }
 };
 
 /**
  * Sends a stat across the wire
- * @param stat {String|Array} The stat(s) to send
- * @param value The value to send
- * @param type {String} The type of message to send to statsd
- * @param sampleRate {Number} The Number of times to sample (0 to 1)
+ * @param stat {String|Array} The stat message to send
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
-Client.prototype.send = function (stat, value, type, sampleRate, callback) {
+Client.prototype._send = function (message, callback) {
+    // Only send this stat if we're not a mock Client.
+    if(!this.mock) {
+        var buf = new Buffer(message);
+        this.socket.send(buf, 0, buf.length, this.port, this.host, callback);
+    } else {
+        if(typeof callback === 'function'){
+            callback(null, 0);
+        }
+    }
+};
+
+/**
+ * Build a stat message
+ */
+Client.prototype.makeMessage = function (stat, value, type, sampleRate) {
     var message = this.prefix + stat + this.suffix + ':' + value + '|' + type,
         buf;
 
@@ -195,16 +186,6 @@ Client.prototype.send = function (stat, value, type, sampleRate, callback) {
         } else {
             //don't want to send if we don't meet the sample ratio
             return;
-        }
-    }
-
-    // Only send this stat if we're not a mock Client.
-    if(!this.mock) {
-        buf = new Buffer(message);
-        this.socket.send(buf, 0, buf.length, this.port, this.host, callback);
-    } else {
-        if(typeof callback === 'function'){
-            callback(null, 0);
         }
     }
 };
