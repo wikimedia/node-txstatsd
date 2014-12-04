@@ -31,7 +31,7 @@
  */
 
 var dgram = require('dgram'),
-	dns   = require('dns');
+    dns   = require('dns');
 
 /**
  * The UDP Client for StatsD
@@ -47,43 +47,43 @@ var dgram = require('dgram'),
  * @constructor
  */
 var Client = function (host, port, prefix, suffix, txstatsd, globalize, cacheDns, mock) {
-	var options = host || {},
-		self = this;
+    var options = host || {},
+        self = this;
 
-	if(arguments.length > 1 || typeof(host) === 'string'){
-		options = {
-			host      : host,
-			port      : port,
-			prefix    : prefix,
-			suffix    : suffix,
-			txstatsd  : txstatsd,
-			globalize : globalize,
-			cacheDns  : cacheDns,
-			mock      : mock === true
-		};
-	}
+    if(arguments.length > 1 || typeof(host) === 'string'){
+        options = {
+            host      : host,
+            port      : port,
+            prefix    : prefix,
+            suffix    : suffix,
+            txstatsd  : txstatsd,
+            globalize : globalize,
+            cacheDns  : cacheDns,
+            mock      : mock === true
+        };
+    }
 
-	this.host   = options.host || 'localhost';
-	this.port   = options.port || 8125;
-	this.prefix = options.prefix || '';
-	this.suffix = options.suffix || '';
+    this.host   = options.host || 'localhost';
+    this.port   = options.port || 8125;
+    this.prefix = options.prefix || '';
+    this.suffix = options.suffix || '';
     // Default to true
-	this.txstatsd = options.txstatsd !== undefined ? options.txstatsd : true;
-	this.socket = dgram.createSocket('udp4');
-	this.mock   = options.mock;
+    this.txstatsd = options.txstatsd !== undefined ? options.txstatsd : true;
+    this.socket = dgram.createSocket('udp4');
+    this.mock   = options.mock;
 
 
-	if(options.cacheDns === true){
-		dns.lookup(options.host, function(err, address, family){
-			if(err === null){
-				self.host = address;
-			}
-		});
-	}
+    if(options.cacheDns === true){
+        dns.lookup(options.host, function(err, address, family){
+            if(err === null){
+                self.host = address;
+            }
+        });
+    }
 
-	if(options.globalize){
-		global.statsd = this;
-	}
+    if(options.globalize){
+        global.statsd = this;
+    }
 };
 
 /**
@@ -94,7 +94,7 @@ var Client = function (host, port, prefix, suffix, txstatsd, globalize, cacheDns
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.timing = function (stat, time, sampleRate, callback) {
-	this.sendAll(stat, time, 'ms', sampleRate, callback);
+    this.sendAll(stat, time, 'ms', sampleRate, callback);
 };
 
 /**
@@ -105,8 +105,8 @@ Client.prototype.timing = function (stat, time, sampleRate, callback) {
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.increment = function (stat, value, sampleRate, callback) {
-	var type = this.txstatsd ? 'm' : 'c';
-	this.sendAll(stat, value || 1, type, sampleRate, callback);
+    var type = this.txstatsd ? 'm' : 'c';
+    this.sendAll(stat, value || 1, type, sampleRate, callback);
 };
 
 /**
@@ -117,7 +117,7 @@ Client.prototype.increment = function (stat, value, sampleRate, callback) {
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.gauge = function (stat, value, sampleRate, callback) {
-	this.sendAll(stat, value, 'g', sampleRate, callback);
+    this.sendAll(stat, value, 'g', sampleRate, callback);
 };
 
 /**
@@ -128,10 +128,10 @@ Client.prototype.gauge = function (stat, value, sampleRate, callback) {
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.unique =
-	Client.prototype.set = function (stat, value, sampleRate, callback) {
-	    var type = this.txstatsd ? 'pd' : 's';
-		this.sendAll(stat, value, type, sampleRate, callback);
-	};
+    Client.prototype.set = function (stat, value, sampleRate, callback) {
+        var type = this.txstatsd ? 'pd' : 's';
+        this.sendAll(stat, value, type, sampleRate, callback);
+    };
 
 /**
  * Checks if stats is an array and sends all stats calling back once all have sent
@@ -141,40 +141,40 @@ Client.prototype.unique =
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.sendAll = function(stat, value, type, sampleRate, callback){
-	var completed = 0,
-		calledback = false,
-		sentBytes = 0,
-		self = this;
+    var completed = 0,
+        calledback = false,
+        sentBytes = 0,
+        self = this;
 
-	/**
-	 * Gets called once for each callback, when all callbacks return we will
-	 * call back from the function
-	 * @private
-	 */
-	function onSend(error, bytes){
-		completed += 1;
-		if(calledback || typeof callback !== 'function'){
-			return;
-		}
+    /**
+     * Gets called once for each callback, when all callbacks return we will
+     * call back from the function
+     * @private
+     */
+    function onSend(error, bytes){
+        completed += 1;
+        if(calledback || typeof callback !== 'function'){
+            return;
+        }
 
-		if(error){
-			calledback = true;
-			return callback(error);
-		}
+        if(error){
+            calledback = true;
+            return callback(error);
+        }
 
-		sentBytes += bytes;
-		if(completed === stat.length){
-			callback(null, sentBytes);
-		}
-	}
+        sentBytes += bytes;
+        if(completed === stat.length){
+            callback(null, sentBytes);
+        }
+    }
 
-	if(Array.isArray(stat)){
-		stat.forEach(function(item){
-			self.send(item, value, type, sampleRate, onSend);
-		});
-	} else {
-		this.send(stat, value, type, sampleRate, callback);
-	}
+    if(Array.isArray(stat)){
+        stat.forEach(function(item){
+            self.send(item, value, type, sampleRate, onSend);
+        });
+    } else {
+        this.send(stat, value, type, sampleRate, callback);
+    }
 };
 
 /**
@@ -186,27 +186,27 @@ Client.prototype.sendAll = function(stat, value, type, sampleRate, callback){
  * @param callback {Function} Callback when message is done being delivered. Optional.
  */
 Client.prototype.send = function (stat, value, type, sampleRate, callback) {
-	var message = this.prefix + stat + this.suffix + ':' + value + '|' + type,
-		buf;
+    var message = this.prefix + stat + this.suffix + ':' + value + '|' + type,
+        buf;
 
-	if(sampleRate && sampleRate < 1){
-		if(Math.random() < sampleRate){
-			message += '|@' + sampleRate;
-		} else {
-			//don't want to send if we don't meet the sample ratio
-			return;
-		}
-	}
+    if(sampleRate && sampleRate < 1){
+        if(Math.random() < sampleRate){
+            message += '|@' + sampleRate;
+        } else {
+            //don't want to send if we don't meet the sample ratio
+            return;
+        }
+    }
 
-	// Only send this stat if we're not a mock Client.
-	if(!this.mock) {
-		buf = new Buffer(message);
-		this.socket.send(buf, 0, buf.length, this.port, this.host, callback);
-	} else {
-		if(typeof callback === 'function'){
-			callback(null, 0);
-		}
-	}
+    // Only send this stat if we're not a mock Client.
+    if(!this.mock) {
+        buf = new Buffer(message);
+        this.socket.send(buf, 0, buf.length, this.port, this.host, callback);
+    } else {
+        if(typeof callback === 'function'){
+            callback(null, 0);
+        }
+    }
 };
 
 module.exports = Client;
