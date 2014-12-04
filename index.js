@@ -67,7 +67,8 @@ var Client = function (host, port, prefix, suffix, txstatsd, globalize, cacheDns
 	this.port   = options.port || 8125;
 	this.prefix = options.prefix || '';
 	this.suffix = options.suffix || '';
-	this.txstatsd = options.txstatsd || false;
+    // Default to true
+	this.txstatsd = options.txstatsd !== undefined ? options.txstatsd : true;
 	this.socket = dgram.createSocket('udp4');
 	this.mock   = options.mock;
 
@@ -128,7 +129,8 @@ Client.prototype.gauge = function (stat, value, sampleRate, callback) {
  */
 Client.prototype.unique =
 	Client.prototype.set = function (stat, value, sampleRate, callback) {
-		this.sendAll(stat, value, 's', sampleRate, callback);
+	    var type = this.txstatsd ? 'pd' : 's';
+		this.sendAll(stat, value, type, sampleRate, callback);
 	};
 
 /**
