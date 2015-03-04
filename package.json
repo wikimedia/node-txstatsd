@@ -1,6 +1,6 @@
 {
   "name": "node-txstatsd",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Modified version of https://github.com/sivy/node-statsd/ for WMF specific",
   "main": "index.js",
   "scripts": {
